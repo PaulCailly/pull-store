@@ -1,0 +1,70 @@
+{
+  "name": "concreteasy-pull-store",
+  "version": "1",
+  "description": "",
+  "main": "server.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+change-me-app-url-git"
+  },
+  "config": {
+    "commitizen": {
+      "path": "/node_modules/@digitalroute/cz-conventional-changelog-for-jira"
+    }
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "commit": "git add . && cz",
+    "lint:check": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "format:check": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app/server.js",
+    "start:dev": "nodemon -w . -w .env -e json,js,env -r dotenv/config app/server.js",
+    "postman:core": "newman run app-core/postman/api-core.postman_collection.json",
+    "stressTest": "k6 run --out csv=loadTestsResults/csvResults/csv_stressTest_output.csv --out json=loadTestsResults/jsonResults/json_stressTest_output.json --out cloud app-core/k6-load-test/k6-scenarios/stressTestScenario.js"
+  },
+  "devDependencies": {
+    "@digitalroute/cz-conventional-changelog-for-jira": "7.2.1",
+    "commitizen": "4.2.4",
+    "cz-conventional-changelog": "3.3.0",
+    "dotenv": "10.0.0",
+    "eslint": "8.16.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-config-standard": "17.0.0",
+    "eslint-plugin-import": "2.25.2",
+    "eslint-plugin-n": "15.2.1",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-prettier": "4.0.0",
+    "eslint-plugin-promise": "6.0.0",
+    "husky": "7.0.4",
+    "lint-staged": "11.2.6",
+    "nodemon": "2.0.15",
+    "prettier": "2.6.2"
+  },
+  "dependencies": {
+    "cors": "2.8.5",
+    "express": "4.17.1",
+    "helmet": "4.6.0",
+    "joi": "17.7.0",
+    "lodash": "4.17.21",
+    "lowdb": "1.0.0",
+    "moment": "2.29.1",
+    "mongodb": "4.2.2",
+    "mongoose": "6.0.12",
+    "morgan": "1.10.0",
+    "nanoid": "3.1.30",
+    "openapi-types": "12.0.0",
+    "rotating-file-stream": "3.0.2",
+    "swagger-jsdoc": "6.0.1",
+    "swagger-ui-express": "4.1.6",
+    "uuid": "8.3.2",
+    "validator": "13.7.0",
+    "cls-hooked": "4.2.2",
+    "winston": "3.8.2"
+  }
+}

@@ -1,0 +1,1379 @@
+{
+	"info": {
+		"_postman_id": "b1b2029f-c2bd-426f-97b1-38ad5e5a0549",
+		"name": "node-pull-store",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18464610"
+	},
+	"item": [
+		{
+			"name": "create single",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let resIsArray;\r",
+							"const id = pm.collectionVariables.get(\"item\") + \"Id\";\r",
+							"\r",
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an object\", () => {\r",
+							"  pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be on the same type that the request\", () => {\r",
+							"  const reqIsArray = Array.isArray(JSON.parse(pm.request.body.raw).serviceReq);\r",
+							"  resIsArray = Array.isArray(pm.response.json().serviceRes);\r",
+							"  pm.expect(reqIsArray).to.be.equal(resIsArray)\r",
+							"});\r",
+							"\r",
+							"pm.test(\"serviceReqId is returned and is not null\", () => {\r",
+							"  if(!resIsArray) {\r",
+							"    pm.expect(pm.response.json().serviceRes.serviceReqId).to.exist;\r",
+							"    pm.expect(pm.response.json().serviceRes.serviceReqId).is.not.null;\r",
+							"  }\r",
+							"  else {\r",
+							"    pm.expect(pm.response.json().serviceRes[0].serviceReqId).to.exist;\r",
+							"    pm.expect(pm.response.json().serviceRes[0].serviceReqId).is.not.null;\r",
+							"  }\r",
+							"});\r",
+							"\r",
+							"pm.test(`${id}-1 is created`, () => {\r",
+							"  if(!resIsArray) {\r",
+							"    pm.expect(pm.response.json().serviceRes.payload._id).to.exist;\r",
+							"  }\r",
+							"  else {\r",
+							"    pm.expect(pm.response.json().serviceRes[0].payload._id).to.exist;\r",
+							"  }\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});\r",
+							"\r",
+							"if(!resIsArray) {\r",
+							"  pm.collectionVariables.set(\"Id-1\", pm.response.json().serviceRes.payload._id);\r",
+							"}\r",
+							"else {\r",
+							"  pm.collectionVariables.set(\"Id-1\", pm.response.json().serviceRes[0].payload._id);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					},
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"serviceReq\": {\r\n    \"serviceReqId\": \"1212\",\r\n    \"payload\": {\r\n      \"testVariable\": \"This item is a test item (Postman)\",\r\n      \"name\": \"{{item}}1\",\r\n      \"type\": \"type1\",\r\n      \"value\": 1,\r\n      \"format\": {\r\n        \"size\": 1,\r\n        \"weigth\": 2\r\n      }\r\n    }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update single",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const id = pm.collectionVariables.get(\"item\") + \"Id\";\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an array\", () => {\r",
+							"  pm.expect(pm.response.json().serviceRes).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"serviceReqId is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().serviceRes.serviceReqId).to.exist;\r",
+							"  pm.expect(pm.response.json().serviceRes.serviceReqId).is.not.null;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(`${id}-1 is returned`, () => {\r",
+							"  pm.expect(pm.response.json().serviceRes.payload['_id']).to.be.equal(pm.collectionVariables.get(\"Id-1\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"  pm.expect(pm.response.json().message).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					},
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"serviceReq\": {\r\n    \"serviceReqId\": \"1212\",\r\n    \"payload\": {\r\n      \"_id\": \"{{Id-1}}\",\r\n      \"updates\": {\r\n        \"status\": 1\r\n      }\r\n    }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const id = pm.collectionVariables.get(\"item\") + \"Id\";\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an object\", () => {\r",
+							"  pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(`Response returns ${id} created by previous POST`, function () {\r",
+							"    pm.expect(pm.response.json().serviceRes.payload._id).to.eql(pm.collectionVariables.get(\"Id-1\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"  pm.expect(pm.response.json().message).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					},
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}/:id",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{Id-1}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const id = pm.collectionVariables.get(\"item\") + \"Id\";\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an object\", () => {\r",
+							"  pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(`Response returns ${id} created by previous POST`, function () {\r",
+							"    pm.expect(pm.response.json().serviceRes.payload[`_id`]).to.eql(pm.collectionVariables.get(\"Id-1\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"  pm.expect(pm.response.json().message).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					},
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}/:id",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{Id-1}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "create multiple",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let resIsArray;\r",
+							"const id = pm.collectionVariables.get(\"item\") + \"Id\";\r",
+							"\r",
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an object\", () => {\r",
+							"  pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be on the same type that the request\", () => {\r",
+							"  const reqIsArray = Array.isArray(JSON.parse(pm.request.body.raw).serviceReq);\r",
+							"  resIsArray = Array.isArray(pm.response.json().serviceRes);\r",
+							"  pm.expect(reqIsArray).to.be.equal(resIsArray)\r",
+							"});\r",
+							"\r",
+							"pm.test(\"serviceReqId is returned and is not null\", () => {\r",
+							"  if(!resIsArray){\r",
+							"    pm.expect(pm.response.json().serviceRes.serviceReqId).to.exist;\r",
+							"    pm.expect(pm.response.json().serviceRes.serviceReqId).is.not.null;\r",
+							"  } else {\r",
+							"    pm.expect(pm.response.json().serviceRes[0].serviceReqId).to.exist;\r",
+							"    pm.expect(pm.response.json().serviceRes[0].serviceReqId).is.not.null;\r",
+							"  }\r",
+							"});\r",
+							"\r",
+							"pm.test(`${id}-1 is created`, () => {\r",
+							"  if(!resIsArray)\r",
+							"    pm.expect(pm.response.json().serviceRes.payload[0]._id).to.exist;\r",
+							"  else\r",
+							"    pm.expect(pm.response.json().serviceRes[0].payload[0]._id).to.exist;\r",
+							"});\r",
+							"\r",
+							"pm.test(`${id}-2 is created`, () => {\r",
+							"  if(!resIsArray)\r",
+							"    pm.expect(pm.response.json().serviceRes.payload[1]._id).to.exist;\r",
+							"  else\r",
+							"    pm.expect(pm.response.json().serviceRes[0].payload[1]._id).to.exist;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});\r",
+							"\r",
+							"if(!resIsArray) {\r",
+							"  pm.collectionVariables.set(\"Id-1\", pm.response.json().serviceRes.payload[0]._id);\r",
+							"  pm.collectionVariables.set(\"Id-2\", pm.response.json().serviceRes.payload[1]._id);\r",
+							"} else {\r",
+							"  pm.collectionVariables.set(\"Id-1\", pm.response.json().serviceRes[0].payload[0]._id);\r",
+							"  pm.collectionVariables.set(\"Id-2\", pm.response.json().serviceRes[0].payload[1]._id);\r",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					},
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"serviceReq\": {\r\n    \"serviceReqId\": \"1212\",\r\n    \"payload\": [\r\n      {\r\n        \"testVariable\": \"This item is a test item (Postman)\",\r\n        \"name\": \"{{item}}2\",\r\n        \"type\": \"type2\",\r\n        \"value\": 2,\r\n        \"format\": {\r\n          \"size\": 2,\r\n          \"weigth\": 3\r\n        }\r\n      },\r\n      {\r\n        \"testVariable\": \"This item is a test item (Postman)\",\r\n        \"name\": \"{{item}}3\",\r\n        \"type\": \"type1\",\r\n        \"value\": 3,\r\n        \"format\": {\r\n          \"size\": 3,\r\n          \"weigth\": 4\r\n        }\r\n      }\r\n    ]\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}/create-multiple",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}",
+						"create-multiple"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const item = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response payload to be an array\", () => {\r",
+							"  pm.expect(pm.response.json().serviceRes.payload).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"const queries = pm.request.url.query.toObject();\r",
+							"// replace %20 by spaces and assign right number values\r",
+							"Object.keys(queries).forEach(key => {\r",
+							"    queries[key] = queries[key].replace('%20', ' ');\r",
+							"    if (!isNaN(queries[key]))\r",
+							"      queries[key] = Number.parseFloat(queries[key]);\r",
+							"    \r",
+							"});\r",
+							"\r",
+							"// remove limit filter from filters\r",
+							"const newQueries = {};\r",
+							"Object.keys(queries).forEach(key => {\r",
+							"    if(key != `limit`)\r",
+							"      newQueries[key] = queries[key];\r",
+							"});\r",
+							"\r",
+							"pm.collectionVariables.set(\"actualQueries\", newQueries);\r",
+							"pm.collectionVariables.set(\"actualQueriesArray\", Object.keys(newQueries));\r",
+							"\r",
+							"pm.test(\"Response payload to have same value of query params\", () => {\r",
+							"  for (let i = 0; i < pm.collectionVariables.get(\"actualQueriesArray\").length; i++) {\r",
+							"      pm.expect(pm.response.json().serviceRes.payload.find((x) => {\r",
+							"            const queries = pm.collectionVariables.get(\"actualQueries\");\r",
+							"            const queriesArray = pm.collectionVariables.get(\"actualQueriesArray\");\r",
+							"            const foundItem = x[queriesArray[i]] === queries[Object.keys(queries)[i]];\r",
+							"            if (foundItem == true) return x;\r",
+							"            else return undefined;\r",
+							"        })).exists;\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"A message is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"  pm.expect(pm.response.json().message).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					},
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}?limit=1",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "1"
+						},
+						{
+							"key": "referenceType",
+							"value": "invoice",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get by ids",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const id = pm.collectionVariables.get(\"item\") + \"Id\";\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an object\", () => {\r",
+							"  pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"serviceReqId is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().serviceRes.serviceReqId).to.exist;\r",
+							"  pm.expect(pm.response.json().serviceRes.serviceReqId).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(`Response returns ${{id}}-1 created by previous POST`, function () {\r",
+							"    pm.expect(pm.response.json().serviceRes.payload[0]._id).to.eql(pm.collectionVariables.get(\"Id-1\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(`Response returns ${{id}}-2 created by previous POST`, function () {\r",
+							"    pm.expect(pm.response.json().serviceRes.payload[1]._id).to.eql(pm.collectionVariables.get(\"Id-2\"));\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"  pm.expect(pm.response.json().message).is.not.null;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					},
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"serviceReq\": {\r\n      \"serviceReqId\": \"1212\",\r\n      \"payload\": [\r\n        {\r\n          \"_id\": \"{{Id-1}}\"\r\n        },\r\n        {\r\n          \"_id\": \"{{Id-2}}\"\r\n        }\r\n      ]\r\n    }\r\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}/get-by-ids",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}",
+						"get-by-ids"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update multiple",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an array\", () => {\r",
+							"  pm.expect(pm.response.json().serviceRes).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"serviceReqId is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().serviceRes[0].serviceReqId).to.exist;\r",
+							"  pm.expect(pm.response.json().serviceRes[0].serviceReqId).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"  pm.expect(pm.response.json().message).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					},
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"serviceReq\": [\r\n    {\r\n      \"serviceReqId\": \"1212\",\r\n      \"payload\": {\r\n        \"filter\": {\r\n          \"value\": 2\r\n        },\r\n        \"updates\": {\r\n          \"status\": 1\r\n        }\r\n      }\r\n    }\r\n  ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}/update-multiple",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}",
+						"update-multiple"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get distinct values",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an object\", () => {\r",
+							"  pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"  pm.expect(pm.response.json().message).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response get back the serviceRequestId\", () => {\r",
+							"  const resReqId = pm.response.json().serviceRes.serviceReqId;\r",
+							"  const reqReqId = JSON.parse(pm.request.body.raw).serviceReq.serviceReqId;\r",
+							"  pm.expect(resReqId).to.be.equal(reqReqId);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Received distinct values match with the request\", () => {\r",
+							"  const reqDistinctValues = JSON.parse(pm.request.body.raw).serviceReq.payload.distinctValuesFor;\r",
+							"  const resDistinctValues = Object.keys(pm.response.json().serviceRes.payload.result[0]);\r",
+							"  let distinctValuesAreMatching = true;\r",
+							"  reqDistinctValues.forEach((distinctValue) => {\r",
+							"    if(resDistinctValues.find((value) => value === distinctValue) == undefined) distinctValuesAreMatching = false;\r",
+							"  });\r",
+							"  pm.expect(distinctValuesAreMatching).to.be.equal(true);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					},
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"serviceReq\": {\r\n    \"serviceReqId\": \"1212\",\r\n    \"payload\": {\r\n      \"filter\": {\r\n        \"type\": [\r\n          \"type1\",\r\n          \"type2\"\r\n        ]\r\n      },\r\n      \"distinctValuesFor\": [\r\n        \"value\",\r\n        \"format.size\"\r\n      ]\r\n    }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}/get-distinct-values",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}",
+						"get-distinct-values"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get selected columns",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an object\", () => {\r",
+							"  pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"  pm.expect(pm.response.json().message).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response get back the serviceRequestId\", () => {\r",
+							"  const resReqId = pm.response.json().serviceRes.serviceReqId;\r",
+							"  const reqReqId = JSON.parse(pm.request.body.raw).serviceReq.serviceReqId;\r",
+							"  pm.expect(resReqId).to.be.equal(reqReqId);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Received colmuns values match with the request\", () => {\r",
+							"  const reqColumns = JSON.parse(pm.request.body.raw).serviceReq.payload.columns;\r",
+							"  const resColumns = Object.keys(pm.response.json().serviceRes.payload[0]);\r",
+							"  let columnsAreMatching = true;\r",
+							"  reqColumns.forEach((column) => {\r",
+							"    if(resColumns.find((value) => value === column) == undefined) columnsAreMatching = false;\r",
+							"  });\r",
+							"  pm.expect(columnsAreMatching).to.be.equal(true);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					},
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"serviceReq\": {\r\n    \"serviceReqId\": \"1212\",\r\n    \"payload\": {\r\n      \"filter\": {\r\n        \"status\": 1\r\n      },\r\n      \"columns\": [\r\n        \"name\",\r\n        \"value\"\r\n      ]\r\n    }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}/get-selected-columns",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}",
+						"get-selected-columns"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete multiple",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let item = pm.collectionVariables.get(\"item\");\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response to be an object\", () => {\r",
+							"  pm.expect(pm.response.json()).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A message is returned and is not null\", () => {\r",
+							"  pm.expect(pm.response.json().message).to.exist;\r",
+							"  pm.expect(pm.response.json().message).is.not.null;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"A code is returned\", () => {\r",
+							"  pm.expect(pm.response.json().code).to.exist;\r",
+							"  pm.expect(pm.response.json().code).to.equal(1);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response get back the serviceRequestId\", () => {\r",
+							"  const resReqId = pm.response.json().serviceRes.serviceReqId;\r",
+							"  const reqReqId = JSON.parse(pm.request.body.raw).serviceReq.serviceReqId;\r",
+							"  pm.expect(resReqId).to.be.equal(reqReqId);\r",
+							"});\r",
+							"\r",
+							"// DEPRECATED\r",
+							"// pm.test(\"Deleted Ids are matching with request\", () => {\r",
+							"//   const reqIds = [pm.collectionVariables.get(\"Id-1\"), pm.collectionVariables.get(\"Id-2\")];\r",
+							"//   const resIds = pm.response.json().serviceRes.payload[`${item}Ids`];\r",
+							"//   let deletedIdsAreMatching = true;\r",
+							"//   reqIds.forEach((reqId) => {\r",
+							"//     if(resIds.find((resId) => resId === reqId) == undefined) deletedIdsAreMatching = false;\r",
+							"//   });\r",
+							"//   pm.expect(deletedIdsAreMatching).to.be.equal(true);\r",
+							"// });"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Init the url-item and payload\r",
+							"const possibleItems = [\"source\", \"sourceEntry\", \"invoiceSource\", \"invoice\", \"file\", \"product\", \"taxConfig\", \"paymentRequest\"];\r",
+							"const actualItem = pm.collectionVariables.get(\"item\");\r",
+							"\r",
+							"if(possibleItems.find((item => item === actualItem)) !== undefined) {\r",
+							"  switch(actualItem) {\r",
+							"    case \"sourceEntry\":\r",
+							"      pm.globals.set(\"url-item\", \"source-entry\");\r",
+							"      break;\r",
+							"    case \"invoiceSource\":\r",
+							"      pm.globals.set(\"url-item\", \"invoice-source\");\r",
+							"      break;\r",
+							"    case \"taxConfig\":\r",
+							"      pm.globals.set(\"url-item\", \"tax-config\");\r",
+							"      break;\r",
+							"    case \"paymentRequest\":\r",
+							"      pm.globals.set(\"url-item\", \"payment-request\");\r",
+							"      break;\r",
+							"    default:\r",
+							"      pm.globals.set(\"url-item\", actualItem);\r",
+							"      break;\r",
+							"  }\r",
+							"} else {\r",
+							"   pm.globals.set(\"url-item\", actualItem); // WILL GENERATE 404\r",
+							"}\r",
+							"\r",
+							"// init the timestamp_iso\r",
+							"pm.globals.set(\"timestamp_iso\", new Date().toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "timestamp_iso",
+						"value": "{{timestamp_iso}}",
+						"type": "text"
+					},
+					{
+						"key": "correlation_id",
+						"value": "ab549d69-b6aa-4995-9717-823095891566",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"serviceReq\": {\r\n    \"serviceReqId\": \"1212\",\r\n    \"payload\": {\r\n      \"filter\": {\r\n        \"testVariable\": \"This item is a test item (Postman)\"\r\n      }\r\n    }\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base-url}}{{deployment-ref}}{{pull-store}}/api/{{url-item}}/delete-multiple",
+					"host": [
+						"{{base-url}}{{deployment-ref}}{{pull-store}}"
+					],
+					"path": [
+						"api",
+						"{{url-item}}",
+						"delete-multiple"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "actualQueries",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "actualQueriesArray",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Id-1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "Id-2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "item",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

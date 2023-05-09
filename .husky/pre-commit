@@ -1,0 +1,28 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# We should not commit on master branch, it should be merged instead
+# ---------------------------------------------------------------------------------------------
+local_branch="$(git rev-parse --abbrev-ref HEAD)"
+
+message="GIT COMMIT REJECTED - It is not allowed to commit on the master branch, branch out, commit then merge instead."
+
+if [ "$local_branch" = "master" ]; then
+  echo "$message"
+  exit 1
+fi
+
+# Verifying branch name
+# ---------------------------------------------------------------------------------------------
+branch_name_regex='^((feature|release|fix)\/[a-zA-Z0-9-]+)$'
+
+message="GIT COMMIT REJECTED - Branch name is not valid as it does not comply to the following regex: $branch_name_regex."
+
+if [[ ! $local_branch =~ $branch_name_regex ]]; then
+    echo "$message"
+    exit 1
+fi
+
+# Linting (and Prettying) the staged files before commit
+# ---------------------------------------------------------------------------------------------
+npx lint-staged
